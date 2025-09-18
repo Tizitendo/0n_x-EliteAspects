@@ -4,6 +4,7 @@
 - Compatible with some modded elites. Has to be turned on individually
 
 ## Special Thanks To
+* Huge thanks to DigBug who created all the sprites
 * The Return Of Modding Discord
 
 ## Contact

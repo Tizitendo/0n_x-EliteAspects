@@ -7,7 +7,7 @@ mods.on_all_mods_loaded(function()
         end
     end
     params = {
-        DropChance = 1000,
+        DropChance = 500,
         EnabledAspects = {
             artifactBoss = true,
             blazing = true,
@@ -20,21 +20,43 @@ mods.on_all_mods_loaded(function()
     }
     params = Toml.config_update(_ENV["!guid"], params) -- Load Save
 end)
+PATH = _ENV["!plugins_mod_folder_path"] .. "/Assets/"
 
 Initialize(function()
     local Elites = Global.class_elite
     local RecordPickups = false
     local RecordedPickups = {}
 
-    log.info("Ignore the following errors:")
-    log.info("----------")
     for i, elite in ipairs(Elites) do
         local Aspect = Equipment.new("OnyxEliteAspects", elite[2], true)
         local AspectName = string.sub(Language.translate_token(elite[3]), 1, -4)
         Aspect:toggle_loot(false)
         Aspect.token_name = AspectName .. " Aspect"
         Aspect.token_text = "Become a " .. AspectName .. " aspect"
-        Aspect:set_sprite(elite[6])
+        if elite[2] == "blazing" then
+            Aspect:set_sprite(Resources.sprite_load("Onyx", "blazingAspect", PATH .. "petroleumHeart.png", 2, 16, 16))
+            Aspect.token_name = "Petroleu mHeart"
+        elseif elite[2] == "frenzied" then
+            Aspect:set_sprite(Resources.sprite_load("Onyx", "frenziedAspect", PATH .. "quantumTransmitter.png", 2, 16, 16))
+            Aspect.token_name = "Quantum Transmitter"
+        elseif elite[2] == "blighted" then
+            Aspect:set_sprite(Resources.sprite_load("Onyx", "blightedAspect", PATH .. "blackenedFragment.png", 2, 16, 16))
+            Aspect.token_name = "Blackened Fragment"
+        elseif elite[2] == "poison" then
+            Aspect:set_sprite(Resources.sprite_load("Onyx", "poisonAspect", PATH .. "rancidOyster.png", 2, 16, 16))
+            Aspect.token_name = "Rancid Oyster"
+        elseif elite[2] == "volatile" then
+            Aspect:set_sprite(Resources.sprite_load("Onyx", "volatileAspect", PATH .. "eyeOfSpite.png", 2, 16, 16))
+            Aspect.token_name = "Eye of Spite"
+        elseif elite[2] == "leeching" then
+            Aspect:set_sprite(Resources.sprite_load("Onyx", "leechingAspect", PATH .. "parasiticGrowth.png", 2, 16, 16))
+            Aspect.token_name = "Parasitic Growth"
+        elseif elite[2] == "overloading" then
+            Aspect:set_sprite(Resources.sprite_load("Onyx", "overloadingAspect", PATH .. "runeMagnet.png", 2, 16, 16))
+            Aspect.token_name = "Rune Magnet"
+        else
+            Aspect:set_sprite(elite[6])
+        end
         Aspect:set_passive(true)
         Aspect:set_loot_tags(Item.LOOT_TAG.equipment_blacklist_enigma, Item.LOOT_TAG.equipment_blacklist_activator)
 
@@ -44,10 +66,7 @@ Initialize(function()
         end
         Aspect:add_callback("onPickup", function(actor, stack)
             RecordPickups = true
-            -- Helper.log_struct(actor)
-            log.warning(actor.sprite_palette)
             GM.elite_set(actor, i - 1)
-            log.warning(actor.sprite_palette)
             actor.elite_type = -1
             local function DisablePickupRecording(arg1, arg2)
                 RecordPickups = false
@@ -61,7 +80,6 @@ Initialize(function()
             RecordedPickups = {}
         end)
     end
-    log.info("----------")
     gm.post_script_hook(gm.constants.item_give, function(self, other, result, args)
         if RecordPickups then
             table.insert(RecordedPickups, args[2].value)
@@ -118,7 +136,7 @@ Initialize(function()
 
     local function FrenzyTeleport(actor)
         local Target = actor:find_target_nearest(actor.x, actor.y)
-        if Target ~= -4 then
+        if Target and Target ~= -4 then
             actor.x = Target.x
             actor.y = Target.y
         end
@@ -189,8 +207,9 @@ Initialize(function()
             local friends = List.new()
             actor:collision_circle_list(actor.x, actor.y, 70, gm.constants.pActor, false, false, friends, false)
             for _, friend in ipairs(friends) do
+                friend = Instance.wrap(friend)
                 if friend.team == actor.team and not friend:same(actor) then
-                    friend:heal(friend.maxhp * .25)
+                    friend:heal(friend.maxhp * 0.25)
                 end
             end
         end
